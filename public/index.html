@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MIVA Maintenance Request System</title>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+
+  <!-- Main App Shell -->
+  <div class="app-shell">
+    
+    <!-- Top Navigation Bar -->
+    <header class="app-navbar" id="app-navbar" style="display: none;">
+      <div class="nav-brand">
+        <div class="nav-logo">M</div>
+        <div class="nav-title-group">
+          <h1>MIVA</h1>
+          <span>Maintenance Request Portal</span>
+        </div>
+      </div>
+      
+      <div class="nav-tabs">
+        <button class="nav-tab active" id="tab-dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+        <button class="nav-tab" id="tab-api-docs" onclick="switchTab('api-docs')">API Documentation</button>
+      </div>
+
+      <div class="nav-user-info">
+        <span class="user-avatar" id="user-avatar">👤</span>
+        <div class="user-text">
+          <span class="user-name" id="display-user-name">Loading...</span>
+          <span class="user-role" id="display-user-role">Student/Staff</span>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="logout-btn" onclick="handleLogout()">Logout</button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="content-container">
+      
+      <!-- ==========================================
+           1. AUTHENTICATION CONTAINER (Login/Reg)
+           ========================================== -->
+      <section class="auth-container" id="auth-container">
+        <div class="auth-card">
+          <div class="auth-header">
+            <div class="auth-logo">M</div>
+            <h2>MIVA Open University</h2>
+            <p id="auth-subtitle">Sign in to your maintenance portal</p>
+          </div>
+
+          <!-- Login Form -->
+          <form id="login-form" onsubmit="handleLogin(event)">
+            <div class="form-group">
+              <label for="login-email">Email Address</label>
+              <input type="email" id="login-email" required placeholder="name@miva.edu.ng">
+            </div>
+            <div class="form-group">
+              <label for="login-password">Password</label>
+              <input type="password" id="login-password" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+            <p class="auth-toggle-text">Don't have an account? <a href="#" onclick="toggleAuthForms(true)">Register here</a></p>
+          </form>
+
+          <!-- Registration Form -->
+          <form id="register-form" onsubmit="handleRegister(event)" style="display: none;">
+            <div class="form-group">
+              <label for="reg-name">Full Name</label>
+              <input type="text" id="reg-name" required placeholder="Jane Doe">
+            </div>
+            <div class="form-group">
+              <label for="reg-email">Email Address</label>
+              <input type="email" id="reg-email" required placeholder="jane@miva.edu.ng">
+            </div>
+            <div class="form-group">
+              <label for="reg-password">Password</label>
+              <input type="password" id="reg-password" required placeholder="••••••••">
+            </div>
+            <div class="form-group">
+              <label for="reg-role">I am registering as a:</label>
+              <select id="reg-role" class="styled-select">
+                <option value="3">Student or Staff Member</option>
+                <option value="2">Maintenance Officer</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+            <p class="auth-toggle-text">Already have an account? <a href="#" onclick="toggleAuthForms(false)">Sign in here</a></p>
+          </form>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           2. MAIN DASHBOARDS CONTAINER (Role-based)
+           ========================================== -->
+      <section class="dashboard-container" id="dashboard-container" style="display: none;">
+        
+        <!-- ==========================================
+             A. STUDENT/STAFF DASHBOARD VIEW
+             ========================================== -->
+        <div id="view-student" class="role-view" style="display: none;">
+          <div class="view-header">
+            <h2>Welcome, <span class="student-name-placeholder">User</span></h2>
+            <p>Submit and track your maintenance requests</p>
+          </div>
+          
+          <div class="dashboard-grid">
+            <!-- Left Side: Request Form -->
+            <div class="grid-card">
+              <div class="card-header">
+                <h3>Submit New Service Request</h3>
+              </div>
+              <form id="request-form" onsubmit="handleCreateRequest(event)">
+                <div class="form-group">
+                  <label for="req-title">Short Title / Subject</label>
+                  <input type="text" id="req-title" required placeholder="e.g., Leaking pipe in Hostel room 3">
+                </div>
+                <div class="form-group">
+                  <label for="req-category">Category</label>
+                  <select id="req-category" class="styled-select" required>
+                    <option value="1">Faulty Electricity</option>
+                    <option value="2">Damaged Furniture</option>
+                    <option value="3">Leaking Pipes</option>
+                    <option value="4">Internet Problems</option>
+                    <option value="5">Classroom Equipment Issues</option>
+                    <option value="6">Hostel Maintenance</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="req-desc">Detailed Description</label>
+                  <textarea id="req-desc" rows="4" required placeholder="Describe the fault and exact location..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Request</button>
+              </form>
+            </div>
+
+            <!-- Right Side: Tracking List -->
+            <div class="grid-card col-span-2">
+              <div class="card-header list-header">
+                <h3>My Submitted Requests</h3>
+                <div class="filter-bar">
+                  <input type="text" id="student-search" placeholder="Search requests..." oninput="fetchStudentRequests()">
+                  <select id="student-filter-status" class="styled-select sm" onchange="fetchStudentRequests()">
+                    <option value="">All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Title</th>
+                      <th>Category</th>
+                      <th>Date Submitted</th>
+                      <th>Status</th>
+                      <th>Officer Assigned</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="student-requests-body">
+                    <!-- Dynamic requests -->
+                  </tbody>
+                </table>
+              </div>
+              
+              <!-- Pagination -->
+              <div class="pagination" id="student-pagination">
+                <!-- Dynamic pages -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             B. MAINTENANCE OFFICER DASHBOARD VIEW
+             ========================================== -->
+        <div id="view-officer" class="role-view" style="display: none;">
+          <div class="view-header">
+            <h2>Welcome, Officer <span class="officer-name-placeholder">User</span></h2>
+            <p>View and manage requests assigned to you</p>
+          </div>
+
+          <div class="grid-card">
+            <div class="card-header list-header">
+              <h3>My Assigned Work Orders</h3>
+              <div class="filter-bar">
+                <input type="text" id="officer-search" placeholder="Search assigned requests..." oninput="fetchOfficerRequests()">
+                <select id="officer-filter-status" class="styled-select sm" onchange="fetchOfficerRequests()">
+                  <option value="">All Statuses</option>
+                  <option value="Pending">Pending</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Submitted By</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="officer-requests-body">
+                  <!-- Dynamic requests -->
+                </tbody>
+              </table>
+            </div>
+            
+            <div class="pagination" id="officer-pagination"></div>
+          </div>
+        </div>
+
+        <!-- ==========================================
+             C. ADMINISTRATOR DASHBOARD VIEW
+             ========================================== -->
+        <div id="view-admin" class="role-view" style="display: none;">
+          <div class="view-header flex-header">
+            <div>
+              <h2>Administrator Console</h2>
+              <p>Manage users, assign tasks, monitor requests and download system audit trail</p>
+            </div>
+            <div class="header-actions">
+              <a href="/api/reports/csv" id="download-report-btn" class="btn btn-secondary" target="_blank">📥 Export CSV Report</a>
+            </div>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-num" id="stat-pending">0</div>
+              <div class="stat-label">Pending Requests</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num" id="stat-progress">0</div>
+              <div class="stat-label">In Progress</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num" id="stat-completed">0</div>
+              <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num" id="stat-total">0</div>
+              <div class="stat-label">Total Requests</div>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            
+            <!-- Global Requests List (Left Side) -->
+            <div class="grid-card col-span-2">
+              <div class="card-header list-header">
+                <h3>Global Requests Manager</h3>
+                <div class="filter-bar">
+                  <input type="text" id="admin-search" placeholder="Search title/desc..." oninput="fetchAdminRequests()">
+                  <select id="admin-filter-status" class="styled-select sm" onchange="fetchAdminRequests()">
+                    <option value="">All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                  <select id="admin-filter-category" class="styled-select sm" onchange="fetchAdminRequests()">
+                    <option value="">All Categories</option>
+                    <option value="1">Faulty Electricity</option>
+                    <option value="2">Damaged Furniture</option>
+                    <option value="3">Leaking Pipes</option>
+                    <option value="4">Internet Problems</option>
+                    <option value="5">Classroom Equipment Issues</option>
+                    <option value="6">Hostel Maintenance</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Title</th>
+                      <th>Category</th>
+                      <th>Submitted By</th>
+                      <th>Status</th>
+                      <th>Assigned Officer</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-requests-body">
+                    <!-- Dynamic requests -->
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="pagination" id="admin-pagination"></div>
+            </div>
+
+            <!-- Side Panels (Right Side) -->
+            <div class="side-panel-column">
+              
+              <!-- System Users List -->
+              <div class="grid-card">
+                <div class="card-header">
+                  <h3>System Users</h3>
+                </div>
+                <div class="user-list-wrapper">
+                  <ul class="user-list" id="admin-users-list">
+                    <!-- Dynamic users -->
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Audit Trail / Logs Log -->
+              <div class="grid-card">
+                <div class="card-header">
+                  <h3>Audit Trail Activity Log</h3>
+                </div>
+                <div class="logs-wrapper">
+                  <ul class="activity-logs" id="admin-logs-list">
+                    <!-- Dynamic status logs -->
+                  </ul>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ==========================================
+           3. API DOCUMENTATION TAB VIEW (Swagger-like)
+           ========================================== -->
+      <section class="api-docs-container" id="api-docs-container" style="display: none;">
+        <div class="docs-card">
+          <h2>API Developer Documentation</h2>
+          <p class="subtitle">REST API Endpoints for MIT 8333 System Integration</p>
+
+          <div class="docs-section">
+            <h3>Authentication API</h3>
+            
+            <div class="endpoint">
+              <span class="method post">POST</span> <span class="path">/api/auth/register</span>
+              <p class="desc">Register a new student, staff, or officer.</p>
+              <pre class="payload">Payload: { "name": "Maurice", "email": "maurice@miva.edu.ng", "password": "password123", "role_id": 3 }</pre>
+            </div>
+
+            <div class="endpoint">
+              <span class="method post">POST</span> <span class="path">/api/auth/login</span>
+              <p class="desc">Log in to receive JWT authorization token.</p>
+              <pre class="payload">Payload: { "email": "admin@miva.edu.ng", "password": "admin123" }</pre>
+            </div>
+          </div>
+
+          <div class="docs-section">
+            <h3>Service Requests API</h3>
+
+            <div class="endpoint">
+              <span class="method post">POST</span> <span class="path">/api/requests</span>
+              <p class="desc">Create a new service request (Needs JWT Authorization header).</p>
+              <pre class="payload">Payload: { "title": "Internet Down", "description": "No Wifi on 2nd floor", "category_id": 4 }</pre>
+            </div>
+
+            <div class="endpoint">
+              <span class="method get">GET</span> <span class="path">/api/requests</span>
+              <p class="desc">Fetch service requests. Automatically filtered based on the logged-in user's role (Students only see theirs, Officers see assigned, Admin sees all).</p>
+              <pre class="payload">Query Params: ?search=wifi&status=Pending&page=1&limit=10</pre>
+            </div>
+
+            <div class="endpoint">
+              <span class="method get">GET</span> <span class="path">/api/requests/:id</span>
+              <p class="desc">Fetch detailed service request details along with full status logs and historical audit trail.</p>
+            </div>
+
+            <div class="endpoint">
+              <span class="method put">PUT</span> <span class="path">/api/requests/:id/status</span>
+              <p class="desc">Update the status of a request (Admin or Assigned Officer only).</p>
+              <pre class="payload">Payload: { "status": "In Progress", "remarks": "Replacing cables" }</pre>
+            </div>
+
+            <div class="endpoint">
+              <span class="method post">POST</span> <span class="path">/api/requests/:id/assign</span>
+              <p class="desc">Assign a request to a maintenance officer (Admin only).</p>
+              <pre class="payload">Payload: { "officer_id": 2, "remarks": "Assigned to electric division" }</pre>
+            </div>
+          </div>
+
+          <div class="docs-section">
+            <h3>Administration API</h3>
+
+            <div class="endpoint">
+              <span class="method get">GET</span> <span class="path">/api/users</span>
+              <p class="desc">Fetch list of system users and their roles (Admin only).</p>
+            </div>
+
+            <div class="endpoint">
+              <span class="method get">GET</span> <span class="path">/api/logs</span>
+              <p class="desc">Fetch full audit logs history (Admin only).</p>
+            </div>
+
+            <div class="endpoint">
+              <span class="method get">GET</span> <span class="path">/api/reports/csv</span>
+              <p class="desc">Direct download for the system CSV database report (Admin only).</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==========================================
+       4. MODALS & POPUPS
+       ========================================== -->
+  
+  <!-- Request Detail / Audit History Modal -->
+  <div class="modal" id="detail-modal" style="display: none;">
+    <div class="modal-content">
+      <button class="close-modal-btn" onclick="closeModal('detail-modal')">✕</button>
+      <h2 id="modal-request-title">Request Details</h2>
+      
+      <div class="modal-grid">
+        <div class="details-section">
+          <p><strong>Status:</strong> <span id="modal-request-status" class="status-badge">Pending</span></p>
+          <p><strong>Category:</strong> <span id="modal-request-category">Electricity</span></p>
+          <p><strong>Submitted By:</strong> <span id="modal-request-submitter">Name</span></p>
+          <p><strong>Date:</strong> <span id="modal-request-date">Date</span></p>
+          <p><strong>Description:</strong></p>
+          <p class="details-description" id="modal-request-desc">Description text...</p>
+        </div>
+
+        <div class="history-section">
+          <h3>Audit Trail & Status History</h3>
+          <div class="timeline-wrapper">
+            <ul class="timeline" id="modal-request-timeline">
+              <!-- Dynamic timeline logs -->
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Assignment Modal -->
+  <div class="modal" id="assign-modal" style="display: none;">
+    <div class="modal-content sm">
+      <button class="close-modal-btn" onclick="closeModal('assign-modal')">✕</button>
+      <h2>Assign Maintenance Officer</h2>
+      <p id="assign-request-title" style="margin-bottom: 16px; font-weight: 500;"></p>
+      
+      <form id="assign-form" onsubmit="submitAssignment(event)">
+        <input type="hidden" id="assign-request-id">
+        <div class="form-group">
+          <label for="assign-officer-select">Select Maintenance Officer</label>
+          <select id="assign-officer-select" class="styled-select" required>
+            <!-- Dynamic officers -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="assign-remarks">Assignment Note / Remarks</label>
+          <input type="text" id="assign-remarks" placeholder="Instructions for officer...">
+        </div>
+        <button type="submit" class="btn btn-primary">Assign Officer</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Officer Progress Update Modal -->
+  <div class="modal" id="progress-modal" style="display: none;">
+    <div class="modal-content sm">
+      <button class="close-modal-btn" onclick="closeModal('progress-modal')">✕</button>
+      <h2>Update Progress</h2>
+      <p id="progress-request-title" style="margin-bottom: 16px; font-weight: 500;"></p>
+      
+      <form id="progress-form" onsubmit="submitProgressUpdate(event)">
+        <input type="hidden" id="progress-request-id">
+        <div class="form-group">
+          <label for="progress-status-select">Update Status</label>
+          <select id="progress-status-select" class="styled-select" required>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="progress-remarks">Update Remarks</label>
+          <input type="text" id="progress-remarks" placeholder="Work progress details..." required>
+        </div>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
