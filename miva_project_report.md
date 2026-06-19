@@ -63,11 +63,13 @@ The core objectives of the web application are to:
 * **Express.js**: Lightweight framework for structuring RESTful API middleware, routes, and JSON request parsers.
 * **JSON Web Tokens (JWT)**: Used to encode user identities in secure cookies or auth headers for stateful API authorization.
 * **Bcrypt.js**: Cryptographic library used for generating password hashes during registration and verifying hashes during login.
+* **Turso Database (libSQL Client)**: Serverless SQLite database SDK used for cloud persistent database access.
+* **dotenv**: Load environment configuration files for local development database credentials.
 
 ---
 
 ## 6. The Database Used and Types of Relationships
-The application integrates **SQLite3**, a lightweight relational database engine.
+The application integrates **SQLite3** locally and **Turso (libSQL)** in production, providing a lightweight, SQL-compliant relational database engine.
 
 ### Database Tables and Columns
 1. **roles**: `id` (PK), `name` (Unique)
@@ -128,21 +130,39 @@ Ran all test suites.
 
 ---
 
-## 9. Deployment Information
-The web server is structured to be production-ready and can be deployed to PaaS environments (e.g. Render, Heroku, or Vercel with serverless databases). 
+## 9. Deployment and Production Architecture
+The application is optimized for cloud deployment utilizing a serverless architecture on **Vercel** coupled with **Turso** for persistent, cloud-hosted SQLite storage.
+
+### Production Stack & Architecture
+* **Frontend/Backend Hosting**: Deployed to Vercel as serverless Node.js handlers.
+* **Database**: Hosted on Turso (libSQL) cloud instances, connecting securely via WebSocket/HTTP connections.
+* **Database Driver Strategy**: The application automatically routes queries:
+  * When `TURSO_DATABASE_URL` is set: Queries are sent to the Turso cloud database using `@libsql/client`.
+  * When absent: The app runs in fallback mode, using local `sqlite3` (ideal for isolated testing and offline development).
+* **Lazy Seeding**: Because Vercel functions load server modules on demand, the application includes a middleware that intercepts the first API call to check, build, and seed the Turso database schemas automatically.
 
 ### How to Run Locally
 1. Ensure Node.js is installed.
-2. Run `npm install` to set up packages.
-3. Start the application:
+2. Run `npm install` to install dependencies (including `dotenv` and `@libsql/client`).
+3. (Optional) Create a `.env` file in the root directory to configure Turso:
+   ```env
+   TURSO_DATABASE_URL=libsql://your-db-url.turso.io
+   TURSO_AUTH_TOKEN=your-auth-token
+   ```
+4. Start the application:
    ```bash
    npm start
    ```
-4. Open [http://localhost:3000](http://localhost:3000) in your web browser.
-5. Use these seeded test credentials:
+   *(If `.env` is omitted, the app automatically falls back to the local `miva_maintenance.db` file).*
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+6. Seeded test credentials:
    * **Student**: `student@miva.edu.ng` / `student123`
    * **Admin**: `admin@miva.edu.ng` / `admin123`
    * **Officer**: `officer@miva.edu.ng` / `officer123`
+
+### Live Production Deployment
+* **GitHub Repository**: Linked to Vercel for continuous integration: [ccmaurice/miva-maintenance-system](https://github.com/ccmaurice/miva-maintenance-system)
+* **Vercel Deployment**: Configured via `vercel.json` to map all backend and static folder requests to the node entry point.
 
 ---
 
@@ -151,6 +171,8 @@ The web server is structured to be production-ready and can be deployed to PaaS 
   * *Solution*: Enforced sequential execution on unit tests by running Jest with the `--runInBand` flag and serialized asynchronous db operations using Promise blocks.
 * **Session Expiry**: User credentials getting lost on refresh.
   * *Solution*: Cached JWT tokens securely inside HTML5 LocalStorage, automatically re-authenticating the user's role on loading.
+* **Serverless Read-Only Filesystems & Persistence (Vercel)**: Standard serverless instances are stateless and block writes to local SQLite database files.
+  * *Solution*: Migrated to Turso Serverless SQLite for production. Refactored the database connection layer to dynamically run on `@libsql/client` when credentials are set, while retaining local `sqlite3` for tests. Implemented a lazy initialization middleware in Express to seed database tables automatically on the first serverless request.
 
 ---
 
