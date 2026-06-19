@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { createClient } = require('@libsql/client');
 const bcrypt = require('bcryptjs');
 const path = require('path');
