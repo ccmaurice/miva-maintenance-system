@@ -580,3 +580,21 @@ function getStatusClass(status) {
   if (status === 'Completed') return 'completed';
   return '';
 }
+
+// One-click demo login helper
+window.loginAsDemo = function(email, password) {
+  const emailInput = document.getElementById('login-email');
+  const passwordInput = document.getElementById('login-password');
+  
+  if (emailInput && passwordInput) {
+    emailInput.value = email;
+    passwordInput.value = password;
+    
+    // Trigger submit event on the login form to authenticate
+    const form = document.getElementById('login-form');
+    if (form) {
+      const event = new Event('submit', { cancelable: true });
+      form.dispatchEvent(event);
+    }
+  }
+};

@@ -882,6 +882,60 @@ h1, h2, h3, h4, h5, h6 {
 .text-center { text-align: center; }
 
 /* ==========================================
+   Demo Accounts Section
+   ========================================== */
+.demo-accounts-section {
+  margin-top: 24px;
+  border-top: 1px dashed var(--border-color);
+  padding-top: 20px;
+}
+
+.demo-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.demo-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.btn-demo {
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-main);
+  padding: 10px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.btn-demo:hover {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-demo .role-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* ==========================================
    Mobile & Responsive Layouts (max-width: 768px)
    ========================================== */
 @media (max-width: 768px) {
@@ -1150,5 +1204,16 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: center;
     flex-wrap: wrap;
     gap: 6px;
+  }
+
+  .demo-buttons-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-demo {
+    flex-direction: row;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
   }
 }

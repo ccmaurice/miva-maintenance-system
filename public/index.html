@@ -68,6 +68,25 @@
             <p class="auth-toggle-text">Don't have an account? <a href="#" onclick="toggleAuthForms(true)">Register here</a></p>
           </form>
 
+          <!-- Demo Accounts Section -->
+          <div class="demo-accounts-section" id="demo-accounts-section">
+            <p class="demo-title">Sign in instantly with a Demo Account:</p>
+            <div class="demo-buttons-grid">
+              <button type="button" class="btn-demo" onclick="loginAsDemo('student@miva.edu.ng', 'student123')">
+                <span class="role-icon">🎓</span>
+                <span>Student</span>
+              </button>
+              <button type="button" class="btn-demo" onclick="loginAsDemo('officer@miva.edu.ng', 'officer123')">
+                <span class="role-icon">🔧</span>
+                <span>Officer</span>
+              </button>
+              <button type="button" class="btn-demo" onclick="loginAsDemo('admin@miva.edu.ng', 'admin123')">
+                <span class="role-icon">⚙️</span>
+                <span>Admin</span>
+              </button>
+            </div>
+          </div>
+
           <!-- Registration Form -->
           <form id="register-form" onsubmit="handleRegister(event)" style="display: none;">
             <div class="form-group">
