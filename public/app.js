@@ -22,6 +22,10 @@ function showAuthenticatedUI() {
   document.getElementById('app-navbar').style.display = 'flex';
   document.getElementById('dashboard-container').style.display = 'block';
   
+  // Show mobile bottom nav on mobile if logged in
+  const mobileNav = document.getElementById('mobile-bottom-nav');
+  if (mobileNav) mobileNav.classList.add('visible');
+  
   // Set display name and role
   document.getElementById('display-user-name').textContent = user.name;
   document.getElementById('display-user-role').textContent = user.role_name;
@@ -53,6 +57,11 @@ function showUnauthenticatedUI() {
   document.getElementById('dashboard-container').style.display = 'none';
   document.getElementById('api-docs-container').style.display = 'none';
   document.getElementById('auth-container').style.display = 'flex';
+  
+  // Hide mobile bottom nav on logout
+  const mobileNav = document.getElementById('mobile-bottom-nav');
+  if (mobileNav) mobileNav.classList.remove('visible');
+  
   toggleAuthForms(false);
 }
 
@@ -77,6 +86,11 @@ window.switchTab = function(tabName) {
   activeTab = tabName;
   document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
   document.getElementById(`tab-${tabName}`).classList.add('active');
+
+  // Sync mobile bottom navigation tabs active state
+  document.querySelectorAll('.mobile-nav-item').forEach(tab => tab.classList.remove('active'));
+  const mobileTab = document.getElementById(`mobile-tab-${tabName}`);
+  if (mobileTab) mobileTab.classList.add('active');
 
   if (tabName === 'dashboard') {
     document.getElementById('api-docs-container').style.display = 'none';
@@ -202,13 +216,13 @@ window.fetchStudentRequests = async function(page = 1) {
     res.data.forEach(req => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${req.id}</td>
-        <td><strong>${req.title}</strong></td>
-        <td>${req.category_name}</td>
-        <td>${new Date(req.created_at).toLocaleDateString()}</td>
-        <td><span class="status-badge ${getStatusClass(req.status)}">${req.status}</span></td>
-        <td>${req.officer_name || '<span class="text-muted">Unassigned</span>'}</td>
-        <td>
+        <td data-label="ID">${req.id}</td>
+        <td data-label="Title"><strong>${req.title}</strong></td>
+        <td data-label="Category">${req.category_name}</td>
+        <td data-label="Date Submitted">${new Date(req.created_at).toLocaleDateString()}</td>
+        <td data-label="Status"><span class="status-badge ${getStatusClass(req.status)}">${req.status}</span></td>
+        <td data-label="Officer Assigned">${req.officer_name || '<span class="text-muted">Unassigned</span>'}</td>
+        <td data-label="Action">
           <button class="btn btn-secondary btn-sm" onclick="openDetailModal(${req.id})">History</button>
         </td>
       `;
@@ -266,15 +280,15 @@ window.fetchOfficerRequests = async function(page = 1) {
     res.data.forEach(req => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${req.id}</td>
-        <td><strong>${req.title}</strong></td>
-        <td>${req.description}</td>
-        <td>${req.category_name}</td>
-        <td>${req.submitter_name} (${req.submitter_email})</td>
-        <td>${new Date(req.created_at).toLocaleDateString()}</td>
-        <td><span class="status-badge ${getStatusClass(req.status)}">${req.status}</span></td>
-        <td>
-          <div style="display:flex; gap:4px;">
+        <td data-label="ID">${req.id}</td>
+        <td data-label="Title"><strong>${req.title}</strong></td>
+        <td data-label="Description">${req.description}</td>
+        <td data-label="Category">${req.category_name}</td>
+        <td data-label="Submitted By">${req.submitter_name} (${req.submitter_email})</td>
+        <td data-label="Date">${new Date(req.created_at).toLocaleDateString()}</td>
+        <td data-label="Status"><span class="status-badge ${getStatusClass(req.status)}">${req.status}</span></td>
+        <td data-label="Actions">
+          <div style="display:flex; gap:4px; justify-content: flex-end;">
             <button class="btn btn-secondary btn-sm" onclick="openDetailModal(${req.id})">History</button>
             <button class="btn btn-primary btn-sm" onclick="openProgressModal(${req.id}, '${req.title}', '${req.status}')" ${req.status === 'Completed' ? 'disabled' : ''}>Update</button>
           </div>
@@ -347,14 +361,14 @@ window.fetchAdminRequests = async function(page = 1) {
     res.data.forEach(req => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${req.id}</td>
-        <td><strong>${req.title}</strong></td>
-        <td>${req.category_name}</td>
-        <td>${req.submitter_name}</td>
-        <td><span class="status-badge ${getStatusClass(req.status)}">${req.status}</span></td>
-        <td>${req.officer_name || '<span class="text-muted">Unassigned</span>'}</td>
-        <td>
-          <div style="display:flex; gap:4px;">
+        <td data-label="ID">${req.id}</td>
+        <td data-label="Title"><strong>${req.title}</strong></td>
+        <td data-label="Category">${req.category_name}</td>
+        <td data-label="Submitted By">${req.submitter_name}</td>
+        <td data-label="Status"><span class="status-badge ${getStatusClass(req.status)}">${req.status}</span></td>
+        <td data-label="Assigned Officer">${req.officer_name || '<span class="text-muted">Unassigned</span>'}</td>
+        <td data-label="Actions">
+          <div style="display:flex; gap:4px; justify-content: flex-end;">
             <button class="btn btn-secondary btn-sm" onclick="openDetailModal(${req.id})">History</button>
             <button class="btn btn-primary btn-sm" onclick="openAssignModal(${req.id}, '${req.title}')" ${req.status === 'Completed' ? 'disabled' : ''}>Assign</button>
           </div>
